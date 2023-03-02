@@ -17,7 +17,7 @@ export class CreateMeetupDto {
 
   @IsNotEmpty()
   @IsDate()
-  @Transform(({ value }) => Date.parse(value))
+  @Transform(({ value }) => new Date(value))
   date: Date;
 
   @IsNotEmpty()
