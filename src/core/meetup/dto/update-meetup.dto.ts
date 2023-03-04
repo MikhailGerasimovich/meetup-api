@@ -1,26 +1,26 @@
-import { IsNotEmpty, IsString, IsArray, IsDate } from 'class-validator';
+import { IsString, IsArray, IsDate, IsOptional } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class UpdateMeetupDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  title: string;
+  title?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  description: string;
+  description?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString({ each: true })
   @IsArray()
-  tags: string[];
+  tags?: string[];
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsDate()
   @Transform(({ value }) => new Date(value))
-  date: Date;
+  date?: Date;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  place: string;
+  place?: string;
 }
