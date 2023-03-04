@@ -18,7 +18,7 @@ export class MeetupController {
   @Get()
   @HttpCode(HttpStatus.OK)
   public async readAll(): Promise<Meetup[]> {
-    const meetups = await this.meetupService.readAll();
+    const meetups = await this.meetupService.readAllBy({});
     return meetups;
   }
 
