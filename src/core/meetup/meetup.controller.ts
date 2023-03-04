@@ -25,21 +25,20 @@ export class MeetupController {
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   public async readById(@Param('id') id: string): Promise<Meetup> {
-    const meetup = await this.meetupService.readById(id);
+    const meetup = await this.meetupService.readOneBy({ id });
     return meetup;
   }
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
-  public async update(@Param('id') id: string, @Body() updateMeetupDto: UpdateMeetupDto): Promise<string> {
-    await this.meetupService.update(id, updateMeetupDto);
-    return 'updated';
+  public async update(@Param('id') id: string, @Body() updateMeetupDto: UpdateMeetupDto): Promise<Meetup> {
+    const updatedMeetup = await this.meetupService.update(id, updateMeetupDto);
+    return updatedMeetup;
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  public async delete(@Param('id') id: string): Promise<string> {
+  public async delete(@Param('id') id: string): Promise<void> {
     await this.meetupService.delete(id);
-    return 'deleted';
   }
 }
