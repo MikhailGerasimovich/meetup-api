@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectModel } from '@nestjs/sequelize';
 import { CreateMeetupDto } from './dto/create-meetup.dto';
 import { UpdateMeetupDto } from './dto/update-meetup.dto';
-import { MeetupOptios } from './dto/meetup.options';
+import { MeetupOptions } from './dto/meetup.options';
 import { Meetup } from './meetup.model';
 
 @Injectable()
@@ -18,12 +18,12 @@ export class MeetupService {
     return meetup;
   }
 
-  public async readAllBy(meetupOptins: MeetupOptios): Promise<Meetup[]> {
+  public async readAllBy(meetupOptins: MeetupOptions): Promise<Meetup[]> {
     const meetups = await this.meetupRepository.findAll({ where: { ...meetupOptins } });
     return meetups;
   }
 
-  public async readOneBy(meetupOptios: MeetupOptios): Promise<Meetup> {
+  public async readOneBy(meetupOptios: MeetupOptions): Promise<Meetup> {
     const meetup = await this.meetupRepository.findOne({ where: { ...meetupOptios } });
     return meetup;
   }

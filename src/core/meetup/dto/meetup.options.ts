@@ -1,7 +1,7 @@
 import { IsString, IsArray, IsDate, IsOptional, IsDefined } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-export class MeetupOptios {
+export class MeetupOptions {
   @IsOptional()
   @IsString()
   id?: string;
