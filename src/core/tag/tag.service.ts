@@ -31,7 +31,7 @@ export class TagService {
 
   public async update(id: string, updateTagDto: UpdateTagDto) {
     const existingTag = await this.readOneBy({ id });
-    if (existingTag) {
+    if (!existingTag) {
       throw new NotFoundException(`tag with id=${id} not found`);
     }
 
@@ -48,7 +48,7 @@ export class TagService {
 
   public async delete(id: string): Promise<void> {
     const existingTag = await this.readOneBy({ id });
-    if (existingTag) {
+    if (!existingTag) {
       throw new NotFoundException(`tag with id=${id} not found`);
     }
     await this.tagRepository.destroy({ where: { id } });
