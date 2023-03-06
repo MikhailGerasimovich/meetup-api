@@ -19,12 +19,18 @@ export class MeetupService {
   }
 
   public async readAllBy(meetupOptins: MeetupOptions): Promise<Meetup[]> {
-    const meetups = await this.meetupRepository.findAll({ where: { ...meetupOptins } });
+    const meetups = await this.meetupRepository.findAll({
+      where: { ...meetupOptins },
+      include: { all: true },
+    });
     return meetups;
   }
 
   public async readOneBy(meetupOptios: MeetupOptions): Promise<Meetup> {
-    const meetup = await this.meetupRepository.findOne({ where: { ...meetupOptios } });
+    const meetup = await this.meetupRepository.findOne({
+      where: { ...meetupOptios },
+      include: { all: true },
+    });
     return meetup;
   }
 
