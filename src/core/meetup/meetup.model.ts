@@ -12,7 +12,7 @@ interface MeetupCreationAttrs {
 
 @Table({ tableName: 'meetups', timestamps: false })
 export class Meetup extends Model<Meetup, MeetupCreationAttrs> {
-  @Column({ type: DataType.STRING, primaryKey: true, unique: true, defaultValue: v4() })
+  @Column({ type: DataType.UUID, primaryKey: true, unique: true, defaultValue: DataType.UUIDV4 })
   id: string;
 
   @Column({ type: DataType.STRING, allowNull: false })
