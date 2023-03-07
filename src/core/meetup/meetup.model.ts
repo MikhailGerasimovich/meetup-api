@@ -1,6 +1,5 @@
 import { BelongsToMany, DataType, Model, Table } from 'sequelize-typescript';
 import { Column } from 'sequelize-typescript';
-import { v4 } from 'uuid';
 import { Tag } from '../tag/tag.model';
 
 interface MeetupCreationAttrs {
