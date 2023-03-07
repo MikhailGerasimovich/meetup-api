@@ -22,7 +22,6 @@ export class TagService {
   public async readAllBy(tagOptions: TagOptions): Promise<Tag[]> {
     const tags = await this.tagRepository.findAll({
       where: { ...tagOptions },
-      include: { all: true },
     });
     return tags;
   }
@@ -30,7 +29,6 @@ export class TagService {
   public async readOneBy(tagOptions: TagOptions): Promise<Tag> {
     const tag = await this.tagRepository.findOne({
       where: { ...tagOptions },
-      include: { all: true },
     });
     return tag;
   }
