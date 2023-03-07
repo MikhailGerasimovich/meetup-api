@@ -1,27 +1,35 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { CreateMeetupDto } from './dto/create-meetup.dto';
 import { UpdateMeetupDto } from './dto/update-meetup.dto';
 import { MeetupOptions } from './dto/meetup.options';
 import { Meetup } from './meetup.model';
+import { TagService } from '../tag/tag.service';
+import { Tag } from '../tag/tag.model';
 
 @Injectable()
 export class MeetupService {
-  constructor(@InjectModel(Meetup) private readonly meetupRepository: typeof Meetup) {}
+  constructor(
+    @InjectModel(Meetup) private readonly meetupRepository: typeof Meetup,
+    private readonly tagService: TagService,
+  ) {}
 
   public async create(createMeetupDto: CreateMeetupDto): Promise<Meetup> {
-    const existingMeetup = await this.readOneBy({ title: createMeetupDto.title });
-    if (existingMeetup) {
-      throw new BadRequestException(`meetup with title=${createMeetupDto.title} already exists`);
-    }
+    const { tags } = createMeetupDto;
+
     const meetup = await this.meetupRepository.create(createMeetupDto);
-    return meetup;
+
+    const tagsArray = await this.getExistingOrCreateTags(tags);
+    await meetup.$add('tags', tagsArray);
+
+    const createdMeetup = await this.readOneBy({ id: meetup.id });
+    return createdMeetup;
   }
 
   public async readAllBy(meetupOptins: MeetupOptions): Promise<Meetup[]> {
     const meetups = await this.meetupRepository.findAll({
       where: { ...meetupOptins },
-      include: { all: true },
+      include: { all: true, through: { attributes: [] } },
     });
     return meetups;
   }
@@ -29,7 +37,7 @@ export class MeetupService {
   public async readOneBy(meetupOptios: MeetupOptions): Promise<Meetup> {
     const meetup = await this.meetupRepository.findOne({
       where: { ...meetupOptios },
-      include: { all: true },
+      include: { all: true, through: { attributes: [] } },
     });
     return meetup;
   }
@@ -39,8 +47,14 @@ export class MeetupService {
     if (!existingMeetup) {
       throw new NotFoundException(`meetup with id=${id} not found`);
     }
+    const { tags, ...updateMeetupData } = updateMeetupDto;
 
-    await this.meetupRepository.update(updateMeetupDto, { where: { id } });
+    await this.meetupRepository.update(updateMeetupData, { where: { id } });
+
+    if (tags) {
+      const tagsArray = await this.getExistingOrCreateTags(tags);
+      await existingMeetup.$set('tags', tagsArray);
+    }
 
     const updatedMeetup = await this.readOneBy({ id });
     return updatedMeetup;
@@ -52,5 +66,14 @@ export class MeetupService {
       throw new NotFoundException(`meetup with id=${id} not found`);
     }
     await this.meetupRepository.destroy({ where: { id } });
+  }
+
+  private async getExistingOrCreateTags(tags: string[]): Promise<Tag[]> {
+    const tagsArray = [];
+    for await (const tag of tags) {
+      const existingTag = await this.tagService.readOneBy({ name: tag });
+      tagsArray.push(existingTag ? existingTag : await this.tagService.create({ name: tag }));
+    }
+    return tagsArray;
   }
 }
