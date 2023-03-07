@@ -11,6 +11,11 @@ export class UpdateMeetupDto {
   description?: string;
 
   @IsOptional()
+  @IsString({ each: true })
+  @IsArray()
+  tags: string[];
+
+  @IsOptional()
   @IsDate()
   @Transform(({ value }) => new Date(value))
   date?: Date;
