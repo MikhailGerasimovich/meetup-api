@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { Transaction } from 'sequelize';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { TagOptions } from './dto/tag.options';
 import { UpdateTagDto } from './dto/update-tag.dto';
@@ -9,13 +10,13 @@ import { Tag } from './tag.model';
 export class TagService {
   constructor(@InjectModel(Tag) private readonly tagRepository: typeof Tag) {}
 
-  public async create(createTagDto: CreateTagDto): Promise<Tag> {
+  public async create(createTagDto: CreateTagDto, transaction?: Transaction): Promise<Tag> {
     const existingTag = await this.readOneBy({ name: createTagDto.name });
     if (existingTag) {
       throw new BadRequestException(`tag with name=${createTagDto.name} already exists`);
     }
 
-    const tag = await this.tagRepository.create(createTagDto);
+    const tag = await this.tagRepository.create(createTagDto, { transaction });
     return tag;
   }
 
