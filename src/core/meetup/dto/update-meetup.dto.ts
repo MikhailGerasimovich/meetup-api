@@ -1,4 +1,4 @@
-import { IsString, IsArray, IsDate, IsOptional } from 'class-validator';
+import { IsString, IsArray, IsDate, IsOptional, IsDefined } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class UpdateMeetupDto {
@@ -13,7 +13,7 @@ export class UpdateMeetupDto {
   @IsOptional()
   @IsString({ each: true })
   @IsArray()
-  tags?: string[];
+  tags: string[];
 
   @IsOptional()
   @IsDate()
