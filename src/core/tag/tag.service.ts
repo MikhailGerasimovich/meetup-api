@@ -45,10 +45,12 @@ export class TagService {
       throw new BadRequestException(`tag with name=${updateTagDto.name} already exists`);
     }
 
-    await this.tagRepository.update(updateTagDto, { where: { id } });
+    const [nemberUpdatedRows, updatedTags] = await this.tagRepository.update(updateTagDto, {
+      where: { id },
+      returning: true,
+    });
 
-    const updatedTag = await this.readOneBy({ id });
-    return updatedTag;
+    return updatedTags[0];
   }
 
   public async delete(id: string): Promise<void> {
