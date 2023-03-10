@@ -15,15 +15,19 @@ export class MeetupService {
     private readonly tagService: TagService,
   ) {}
 
-  public async create(createMeetupDto: CreateMeetupDto, transaction: Transaction): Promise<any> {
+  public async create(createMeetupDto: CreateMeetupDto, transaction: Transaction): Promise<Meetup> {
     const { tags } = createMeetupDto;
 
-    const meetup = await this.meetupRepository.create(createMeetupDto, { transaction });
+    const meetup = await this.meetupRepository.create(createMeetupDto, {
+      transaction,
+    });
 
     const tagsArray = await this.getExistingOrCreateTags(tags, transaction);
     await meetup.$add('tags', tagsArray, { transaction });
 
-    return { message: `Meetup with title=${createMeetupDto.title} successfully created` };
+    meetup.tags = tagsArray;
+
+    return meetup;
   }
 
   public async readAllBy(meetupOptins: MeetupOptions): Promise<Meetup[]> {
@@ -46,21 +50,31 @@ export class MeetupService {
     id: string,
     updateMeetupDto: UpdateMeetupDto,
     transaction: Transaction,
-  ): Promise<any> {
+  ): Promise<Meetup> {
     const existingMeetup = await this.readOneBy({ id });
     if (!existingMeetup) {
       throw new NotFoundException(`meetup with id=${id} not found`);
     }
     const { tags, ...updateMeetupData } = updateMeetupDto;
 
-    await this.meetupRepository.update(updateMeetupData, { where: { id }, transaction });
+    const [nemberUpdatedRows, updatedMeetups] = await this.meetupRepository.update(
+      updateMeetupData,
+      {
+        where: { id },
+        returning: true,
+        transaction,
+      },
+    );
 
     if (tags) {
       const tagsArray = await this.getExistingOrCreateTags(tags, transaction);
       await existingMeetup.$set('tags', tagsArray, { transaction });
+      updatedMeetups[0].tags = tagsArray;
+    } else {
+      updatedMeetups[0].tags = existingMeetup.tags;
     }
 
-    return { message: `Meetup with id=${id} successfully updated` };
+    return updatedMeetups[0];
   }
 
   public async delete(id: string): Promise<void> {
