@@ -10,13 +10,13 @@ import {
   HttpStatus,
   UseInterceptors,
 } from '@nestjs/common';
+import { Transaction } from 'sequelize';
 import { CreateMeetupDto } from './dto/create-meetup.dto';
 import { MeetupService } from './meetup.service';
-import { Meetup } from './meetup.model';
 import { UpdateMeetupDto } from './dto/update-meetup.dto';
 import { TransactionInterceptor } from 'src/common/interceptors/transaction.interceptor';
 import { TransactionParam } from 'src/common/decorators/transaction.decorator';
-import { Transaction } from 'sequelize';
+import { FrontendMeetup } from './types/meetup.types';
 
 @Controller('meetup')
 export class MeetupController {
@@ -28,22 +28,23 @@ export class MeetupController {
   public async create(
     @Body() createMeetupDtp: CreateMeetupDto,
     @TransactionParam() transaction: Transaction,
-  ): Promise<any> {
-    return await this.meetupService.create(createMeetupDtp, transaction);
+  ): Promise<FrontendMeetup> {
+    const meetup = await this.meetupService.create(createMeetupDtp, transaction);
+    return new FrontendMeetup(meetup);
   }
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  public async readAll(): Promise<Meetup[]> {
+  public async readAll(): Promise<FrontendMeetup[]> {
     const meetups = await this.meetupService.readAllBy({});
-    return meetups;
+    return meetups.map((meetup) => new FrontendMeetup(meetup));
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  public async readById(@Param('id') id: string): Promise<Meetup> {
+  public async readById(@Param('id') id: string): Promise<FrontendMeetup> {
     const meetup = await this.meetupService.readOneBy({ id });
-    return meetup;
+    return new FrontendMeetup(meetup);
   }
 
   @UseInterceptors(TransactionInterceptor)
@@ -53,8 +54,9 @@ export class MeetupController {
     @Param('id') id: string,
     @Body() updateMeetupDto: UpdateMeetupDto,
     @TransactionParam() transaction: Transaction,
-  ): Promise<any> {
-    return await this.meetupService.update(id, updateMeetupDto, transaction);
+  ): Promise<FrontendMeetup> {
+    const updatedMeetup = await this.meetupService.update(id, updateMeetupDto, transaction);
+    return new FrontendMeetup(updatedMeetup);
   }
 
   @Delete(':id')
