@@ -32,6 +32,7 @@ export class TransactionInterceptor implements NestInterceptor {
           error instanceof HttpException ? error.getResponse() : 'Transaction rollback';
         const status =
           error instanceof HttpException ? error.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+
         throw new HttpException(message, status);
       }),
     );
