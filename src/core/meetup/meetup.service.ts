@@ -7,6 +7,9 @@ import { Meetup } from './meetup.model';
 import { TagService } from '../tag/tag.service';
 import { Tag } from '../tag/tag.model';
 import { Transaction } from 'sequelize';
+import { ReadAllResult } from 'src/common/read-all/types/read-all.types';
+import { defaultPagination } from 'src/common/constants/pagination.constants';
+import { IReadAllMeetupOptions } from './types/read-all-meetup.options';
 
 @Injectable()
 export class MeetupService {
@@ -30,17 +33,25 @@ export class MeetupService {
     return meetup;
   }
 
-  public async readAllBy(meetupOptins: MeetupOptions): Promise<Meetup[]> {
-    const meetups = await this.meetupRepository.findAll({
-      where: { ...meetupOptins },
-      include: { all: true, through: { attributes: [] } },
+  public async readAll(readOptions: IReadAllMeetupOptions): Promise<ReadAllResult<Meetup>> {
+    const pagination = readOptions.pagination ?? defaultPagination;
+
+    const { count, rows } = await this.meetupRepository.findAndCountAll({
+      include: { all: true },
+      distinct: true,
+      limit: pagination.size,
+      offset: pagination.offset,
     });
-    return meetups;
+
+    return {
+      totalRecordsNumber: count,
+      entities: rows,
+    };
   }
 
-  public async readOneBy(meetupOptios: MeetupOptions): Promise<Meetup> {
+  public async readOneBy(meetupOptions: MeetupOptions): Promise<Meetup> {
     const meetup = await this.meetupRepository.findOne({
-      where: { ...meetupOptios },
+      where: { ...meetupOptions },
       include: { all: true, through: { attributes: [] } },
     });
     return meetup;
