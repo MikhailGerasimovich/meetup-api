@@ -1,7 +1,10 @@
-import { Controller, Post, HttpCode, Body, Get, Put, Delete, Param } from '@nestjs/common';
+import { Controller, Post, HttpCode, Body, Get, Put, Delete, Param, Query } from '@nestjs/common';
 import { HttpStatus } from '@nestjs/common/enums';
+import { ReadAllResult } from 'src/common/read-all/types/read-all.types';
 import { CreateTagDto } from './dto/create-tag.dto';
+import { ReadAllTagDto } from './dto/read-all-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
+import { Tag } from './tag.model';
 import { TagService } from './tag.service';
 import { FrontendTag } from './types/tag.types';
 
@@ -18,9 +21,14 @@ export class TagController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  public async readAll(): Promise<FrontendTag[]> {
-    const tags = await this.tagService.readAllBy({});
-    return tags.map((tag) => new FrontendTag(tag));
+  public async readAll(@Query() readAllTagDto: ReadAllTagDto): Promise<ReadAllResult<FrontendTag>> {
+    const { pagination, sorting, ...filter } = readAllTagDto;
+    const tags = await this.tagService.readAll({ pagination, sorting, filter });
+
+    return {
+      totalRecordsNumber: tags.totalRecordsNumber,
+      entities: tags.entities.map((tag: Tag) => new FrontendTag(tag)),
+    };
   }
 
   @Get(':id')

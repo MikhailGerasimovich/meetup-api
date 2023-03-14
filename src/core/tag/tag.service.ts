@@ -1,10 +1,14 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Transaction } from 'sequelize';
+import { defaultPagination } from 'src/common/constants/pagination.constants';
+import { defaultSorting } from 'src/common/constants/sorting.constants';
+import { ReadAllResult } from 'src/common/read-all/types/read-all.types';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { TagOptions } from './dto/tag.options';
 import { UpdateTagDto } from './dto/update-tag.dto';
 import { Tag } from './tag.model';
+import { IReadAllTagOptions, TagFiltration } from './types/read-all-tag.options';
 
 @Injectable()
 export class TagService {
@@ -20,11 +24,24 @@ export class TagService {
     return tag;
   }
 
-  public async readAllBy(tagOptions: TagOptions): Promise<Tag[]> {
-    const tags = await this.tagRepository.findAll({
-      where: { ...tagOptions },
+  public async readAll(readOptions: IReadAllTagOptions): Promise<ReadAllResult<Tag>> {
+    const pagination = readOptions.pagination ?? defaultPagination;
+    const sorting = readOptions.sorting ?? defaultSorting;
+    const filter = TagFiltration.getLikeFilters(readOptions.filter);
+
+    const { count, rows } = await this.tagRepository.findAndCountAll({
+      where: { ...filter.tagFilters },
+      include: { all: true },
+      distinct: true,
+      limit: pagination.size,
+      offset: pagination.offset,
+      order: [[sorting.column, sorting.direction]],
     });
-    return tags;
+
+    return {
+      totalRecordsNumber: count,
+      entities: rows,
+    };
   }
 
   public async readOneBy(tagOptions: TagOptions): Promise<Tag> {
