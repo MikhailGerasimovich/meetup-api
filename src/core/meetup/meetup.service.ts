@@ -9,7 +9,8 @@ import { Tag } from '../tag/tag.model';
 import { Transaction } from 'sequelize';
 import { ReadAllResult } from 'src/common/read-all/types/read-all.types';
 import { defaultPagination } from 'src/common/constants/pagination.constants';
-import { IReadAllMeetupOptions } from './types/read-all-meetup.options';
+import { IReadAllMeetupOptions, MeetupFiltration } from './types/read-all-meetup.options';
+import { defaultSorting } from 'src/common/constants/sorting.constants';
 
 @Injectable()
 export class MeetupService {
@@ -35,12 +36,22 @@ export class MeetupService {
 
   public async readAll(readOptions: IReadAllMeetupOptions): Promise<ReadAllResult<Meetup>> {
     const pagination = readOptions.pagination ?? defaultPagination;
+    const sorting = readOptions.sorting ?? defaultSorting;
+    const filter = MeetupFiltration.getLikeFilters(readOptions.filter);
 
     const { count, rows } = await this.meetupRepository.findAndCountAll({
-      include: { all: true },
+      where: { ...filter.meetupFilters },
+      include: [
+        {
+          model: Tag,
+          where: filter.tagsFilters,
+          all: true,
+        },
+      ],
       distinct: true,
       limit: pagination.size,
       offset: pagination.offset,
+      order: [[sorting.column, sorting.direction]],
     });
 
     return {

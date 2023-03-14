@@ -1,4 +1,4 @@
-import { IsDefined, IsOptional, IsString, IsDate } from 'class-validator';
+import { IsDefined, IsOptional, IsString, IsDate, IsArray } from 'class-validator';
 import { BaseReadAllDto } from 'src/common/read-all/dto/base-read-all.dto';
 
 export class ReadAllMeetupDto extends BaseReadAllDto {
@@ -11,6 +11,12 @@ export class ReadAllMeetupDto extends BaseReadAllDto {
   @IsDefined()
   @IsString()
   public description?: string;
+
+  @IsOptional()
+  @IsDefined()
+  @IsString({ each: true })
+  @IsArray()
+  public tags?: string[];
 
   @IsOptional()
   @IsDefined()
