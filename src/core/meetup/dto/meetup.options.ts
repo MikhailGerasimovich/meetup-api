@@ -1,7 +1,7 @@
-import { IsString, IsArray, IsDate, IsOptional } from 'class-validator';
+import { IsString, IsArray, IsDate, IsOptional, IsDefined } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-export class MeetupOptios {
+export class MeetupOptions {
   @IsOptional()
   @IsString()
   id?: string;
@@ -15,6 +15,7 @@ export class MeetupOptios {
   description?: string;
 
   @IsOptional()
+  @IsDefined()
   @IsString({ each: true })
   @IsArray()
   tags?: string[];

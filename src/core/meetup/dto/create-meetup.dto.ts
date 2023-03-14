@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsArray, IsDate } from 'class-validator';
+import { IsNotEmpty, IsString, IsArray, IsDate, IsDefined } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class CreateMeetupDto {
@@ -10,7 +10,7 @@ export class CreateMeetupDto {
   @IsString()
   description: string;
 
-  @IsNotEmpty()
+  @IsDefined()
   @IsString({ each: true })
   @IsArray()
   tags: string[];
