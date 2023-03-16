@@ -44,7 +44,7 @@ export class MeetupService {
       include: [
         {
           model: Tag,
-          where: filter.tagsFilters,
+          where: { ...filter.tagsFilters },
           all: true,
         },
       ],
@@ -53,6 +53,10 @@ export class MeetupService {
       offset: pagination.offset,
       order: [[sorting.column, sorting.direction]],
     });
+
+    for (let meetup of rows) {
+      meetup.tags = await meetup.$get('tags');
+    }
 
     return {
       totalRecordsNumber: count,
