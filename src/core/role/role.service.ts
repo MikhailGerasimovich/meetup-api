@@ -69,4 +69,14 @@ export class RoleService {
     }
     await this.roleRepository.destroy({ where: { id } });
   }
+
+  public async initRoles(roleNames: string[]): Promise<void> {
+    for (let roleName of roleNames) {
+      const role = await this.readOneBy({ name: roleName.toLocaleUpperCase() });
+      if (!role) {
+        await this.create({ name: roleName });
+      }
+    }
+    console.log('All required roles exist or created successfully');
+  }
 }
