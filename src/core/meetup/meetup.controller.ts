@@ -30,10 +30,10 @@ export class MeetupController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   public async create(
-    @Body() createMeetupDtp: CreateMeetupDto,
+    @Body() createMeetupDto: CreateMeetupDto,
     @TransactionParam() transaction: Transaction,
   ): Promise<FrontendMeetup> {
-    const meetup = await this.meetupService.create(createMeetupDtp, transaction);
+    const meetup = await this.meetupService.create(createMeetupDto, transaction);
     return new FrontendMeetup(meetup);
   }
 

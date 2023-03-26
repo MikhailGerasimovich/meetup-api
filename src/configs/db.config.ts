@@ -9,4 +9,7 @@ export const dbconfig: SequelizeModuleOptions = {
   database: process.env.DB_NAME ?? 'meetup_db',
   models: [],
   autoLoadModels: true,
+  define: {
+    timestamps: false,
+  },
 };

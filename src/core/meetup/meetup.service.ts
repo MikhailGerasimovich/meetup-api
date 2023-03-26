@@ -104,8 +104,8 @@ export class MeetupService {
   }
 
   public async delete(id: string): Promise<void> {
-    const existingModel = await this.readOneBy({ id });
-    if (!existingModel) {
+    const existingMeetup = await this.readOneBy({ id });
+    if (!existingMeetup) {
       throw new NotFoundException(`meetup with id=${id} not found`);
     }
     await this.meetupRepository.destroy({ where: { id } });
