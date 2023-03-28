@@ -25,15 +25,8 @@ export class UserService {
       throw new BadRequestException(`this operation is not available at the moment`);
     }
 
-    const similarLoginUser = await this.readOneBy({ login: createUserDto.login });
-    if (similarLoginUser) {
-      throw new BadRequestException(`user with login=${createUserDto.login} already exists`);
-    }
-
-    const similarEmailUser = await this.readOneBy({ email: createUserDto.email });
-    if (similarEmailUser) {
-      throw new BadRequestException(`user with email=${createUserDto.email} already exists`);
-    }
+    await this.throwErrorIfSimilarLoginUserExists(createUserDto.login);
+    await this.throwErrorIfSimilarEmailUserExists(createUserDto.email);
 
     const user = await this.userRepository.create(createUserDto, { transaction });
     await user.$add('roles', [role], { transaction }); //в этом месте транзакция падает
@@ -89,22 +82,8 @@ export class UserService {
       throw new NotFoundException(`user with id=${id} not found`);
     }
 
-    //надо бы это будет поменять
-    const similarLoginUser =
-      updateUserDto.login !== undefined
-        ? await this.readOneBy({ login: updateUserDto.login })
-        : null;
-    if (similarLoginUser) {
-      throw new BadRequestException(`user with login=${updateUserDto.login} already exists`);
-    }
-
-    const similarEmailUser =
-      updateUserDto.email !== undefined
-        ? await this.readOneBy({ email: updateUserDto.email })
-        : null;
-    if (similarEmailUser) {
-      throw new BadRequestException(`user with email=${updateUserDto.email} already exists`);
-    }
+    await this.throwErrorIfSimilarLoginUserExists(updateUserDto.login);
+    await this.throwErrorIfSimilarEmailUserExists(updateUserDto.email);
 
     const [nemberUpdatedRows, updatedUsers] = await this.userRepository.update(updateUserDto, {
       where: { id },
@@ -123,5 +102,23 @@ export class UserService {
       throw new NotFoundException(`user with id=${id} not found`);
     }
     await this.userRepository.destroy({ where: { id } });
+  }
+
+  private async throwErrorIfSimilarLoginUserExists(login: string): Promise<void> {
+    if (!login) return;
+
+    const similarLoginUser = await this.readOneBy({ login });
+    if (similarLoginUser) {
+      throw new BadRequestException(`user with login=${login} already exists`);
+    }
+  }
+
+  private async throwErrorIfSimilarEmailUserExists(email: string): Promise<void> {
+    if (!email) return;
+
+    const similarEmailUser = await this.readOneBy({ email });
+    if (similarEmailUser) {
+      throw new BadRequestException(`user with email=${email} already exists`);
+    }
   }
 }
