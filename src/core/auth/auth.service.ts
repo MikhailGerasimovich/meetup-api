@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Transaction } from 'sequelize';
 import { UserService } from '../user/user.service';
-import { hashSync, compareSync, hash } from 'bcryptjs';
+import { compareSync, hash } from 'bcryptjs';
 import { User } from '../user/user.model';
 import { JwtService } from '@nestjs/jwt';
 import { PayloadDto } from './dto/payload.dto';
@@ -16,7 +16,6 @@ import { CreateUserDto } from '../user/dto/create-user.dto';
 export class AuthService {
   constructor(private readonly userService: UserService, private readonly jwtService: JwtService) {}
 
-  //наверно так себе идея возвращать после регистрации пользователя, а может и норм
   public async registration(createUserDto: CreateUserDto, transaction: Transaction): Promise<User> {
     const hashPassword = await hash(createUserDto.password, 7);
     const registratedUser = await this.userService.create(
