@@ -6,7 +6,6 @@ import {
   HttpStatus,
   UseInterceptors,
   UseGuards,
-  Request,
 } from '@nestjs/common';
 import { Transaction } from 'sequelize';
 import { TransactionInterceptor } from 'src/common/interceptors/transaction.interceptor';
@@ -16,6 +15,8 @@ import { CreateUserDto } from '../user/dto/create-user.dto';
 import { LocalAuthGuard } from 'src/common/guards/local.guard';
 import { FrontendUser } from '../user/types/user.types';
 import { RefreshDto } from './dto/refresh.dto';
+import { FrontendJwt } from './types/jwt.types';
+import { UserFromRequest } from 'src/common/decorators/user-from-request.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -35,18 +36,14 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  public async login(@Request() req): Promise<{ accessToken: string; refreshToken: string }> {
-    const user = req.user;
+  public async login(@UserFromRequest() user): Promise<FrontendJwt> {
     const tokens = await this.authService.login(user);
-
     return tokens;
   }
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  public async refresh(
-    @Body() refreshDto: RefreshDto,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  public async refresh(@Body() refreshDto: RefreshDto): Promise<FrontendJwt> {
     const tokens = await this.authService.refresh(refreshDto.refreshToken);
     return tokens;
   }
