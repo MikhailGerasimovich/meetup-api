@@ -11,6 +11,7 @@ import { User } from '../user/user.model';
 import { JwtService } from '@nestjs/jwt';
 import { PayloadDto } from './dto/payload.dto';
 import { CreateUserDto } from '../user/dto/create-user.dto';
+import { FrontendJwt } from './types/jwt.types';
 
 @Injectable()
 export class AuthService {
@@ -28,25 +29,16 @@ export class AuthService {
     return registratedUser;
   }
 
-  public async login(user: User): Promise<{ accessToken: string; refreshToken: string }> {
-    const payload = { id: user.id, roles: user.roles } as PayloadDto;
+  public async login(user: User): Promise<FrontendJwt> {
+    const payload = { id: user.id, roles: user.roles };
 
-    const accessToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_ACCESS_TOKEN_SECRET,
-      expiresIn: process.env.JWT_ACCESS_TOKEN_DURATION,
-    });
-
-    const refreshToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_REFRESH_TOKEN_SECRET,
-      expiresIn: process.env.JWT_REFRESH_TOKEN_DURATION,
-    });
+    const accessToken = await this.generateAccessJwtToken(payload);
+    const refreshToken = await this.generateRefreshJwtToken(payload);
 
     return { accessToken, refreshToken };
   }
 
-  public async refresh(
-    refreshToken: string,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  public async refresh(refreshToken: string): Promise<FrontendJwt> {
     if (!refreshToken) {
       throw new BadRequestException('no refresh token');
     }
@@ -55,17 +47,10 @@ export class AuthService {
         secret: process.env.JWT_REFRESH_TOKEN_SECRET,
       });
 
-      const payload = { id, roles } as PayloadDto;
+      const payload = { id, roles };
+      const newAccessToken = await this.generateAccessJwtToken(payload);
+      const newRefreshToken = await this.generateRefreshJwtToken(payload);
 
-      const newAccessToken = await this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_ACCESS_TOKEN_SECRET,
-        expiresIn: process.env.JWT_ACCESS_TOKEN_DURATION,
-      });
-
-      const newRefreshToken = await this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_REFRESH_TOKEN_SECRET,
-        expiresIn: process.env.JWT_REFRESH_TOKEN_DURATION,
-      });
       return { accessToken: newAccessToken, refreshToken: newRefreshToken };
     } catch (err) {
       if (err.name === 'TokenExpiredError') {
@@ -87,5 +72,23 @@ export class AuthService {
     }
 
     return null;
+  }
+
+  private async generateAccessJwtToken(payload: PayloadDto): Promise<string> {
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_ACCESS_TOKEN_SECRET,
+      expiresIn: process.env.JWT_ACCESS_TOKEN_DURATION,
+    });
+
+    return accessToken;
+  }
+
+  private async generateRefreshJwtToken(payload: PayloadDto): Promise<string> {
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_REFRESH_TOKEN_SECRET,
+      expiresIn: process.env.JWT_REFRESH_TOKEN_DURATION,
+    });
+
+    return refreshToken;
   }
 }
