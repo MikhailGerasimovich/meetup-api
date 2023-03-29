@@ -43,6 +43,14 @@ export class RoleService {
     return role;
   }
 
+  public async readOneById(id: string): Promise<Role> {
+    const role = await this.readOneBy({ id });
+    if (!role) {
+      throw new NotFoundException(`role with id=${id} not found`);
+    }
+    return role;
+  }
+
   public async update(id: string, updateRoleDto: UpdateRoleDto): Promise<Role> {
     const existingRole = await this.readOneBy({ id });
     if (!existingRole) {

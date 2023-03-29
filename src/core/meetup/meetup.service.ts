@@ -72,6 +72,14 @@ export class MeetupService {
     return meetup;
   }
 
+  public async readOneById(id: string): Promise<Meetup> {
+    const meetup = await this.readOneBy({ id });
+    if (!meetup) {
+      throw new NotFoundException(`meetup with id=${id} not found`);
+    }
+    return meetup;
+  }
+
   public async update(
     id: string,
     updateMeetupDto: UpdateMeetupDto,

@@ -17,6 +17,7 @@ import { FrontendUser } from '../user/types/user.types';
 import { RefreshDto } from './dto/refresh.dto';
 import { FrontendJwt } from './types/jwt.types';
 import { UserFromRequest } from 'src/common/decorators/user-from-request.decorator';
+import { User } from '../user/user.model';
 
 @Controller('auth')
 export class AuthController {
@@ -36,7 +37,7 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  public async login(@UserFromRequest() user): Promise<FrontendJwt> {
+  public async login(@UserFromRequest() user: User): Promise<FrontendJwt> {
     const tokens = await this.authService.login(user);
     return tokens;
   }

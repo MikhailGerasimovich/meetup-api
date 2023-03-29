@@ -54,7 +54,7 @@ export class MeetupController {
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   public async readById(@Param('id') id: string): Promise<FrontendMeetup> {
-    const meetup = await this.meetupService.readOneBy({ id });
+    const meetup = await this.meetupService.readOneById(id);
     return new FrontendMeetup(meetup);
   }
 

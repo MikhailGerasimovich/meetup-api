@@ -76,6 +76,14 @@ export class UserService {
     return user;
   }
 
+  public async readOneById(id: string): Promise<User> {
+    const user = await this.readOneBy({ id });
+    if (!user) {
+      throw new NotFoundException(`user with id=${id} not found`);
+    }
+    return user;
+  }
+
   public async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const existingUser = await this.readOneBy({ id });
     if (!existingUser) {

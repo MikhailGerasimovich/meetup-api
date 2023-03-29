@@ -34,7 +34,7 @@ export class TagController {
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   public async readById(@Param('id') id: string): Promise<FrontendTag> {
-    const tag = await this.tagService.readOneBy({ id });
+    const tag = await this.tagService.readOneById(id);
     return new FrontendTag(tag);
   }
 

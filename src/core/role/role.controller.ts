@@ -46,7 +46,7 @@ export class RoleController {
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   public async readById(@Param('id') id: string): Promise<FrontendRole> {
-    const role = await this.roleService.readOneBy({ id });
+    const role = await this.roleService.readOneById(id);
     return new FrontendRole(role);
   }
 
