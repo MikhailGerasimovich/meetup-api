@@ -93,7 +93,7 @@ export class UserService {
     await this.throwErrorIfSimilarLoginUserExists(updateUserDto.login);
     await this.throwErrorIfSimilarEmailUserExists(updateUserDto.email);
 
-    const [nemberUpdatedRows, updatedUsers] = await this.userRepository.update(updateUserDto, {
+    const [numberUpdatedRows, updatedUsers] = await this.userRepository.update(updateUserDto, {
       where: { id },
       returning: true,
     });

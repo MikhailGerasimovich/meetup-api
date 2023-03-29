@@ -70,7 +70,7 @@ export class TagService {
       throw new BadRequestException(`tag with name=${updateTagDto.name} already exists`);
     }
 
-    const [nemberUpdatedRows, updatedTags] = await this.tagRepository.update(updateTagDto, {
+    const [numberUpdatedRows, updatedTags] = await this.tagRepository.update(updateTagDto, {
       where: { id },
       returning: true,
     });

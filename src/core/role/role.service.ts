@@ -62,7 +62,7 @@ export class RoleService {
       throw new BadRequestException(`role with name=${updateRoleDto.name} already exists`);
     }
 
-    const [nemberUpdatedRows, updatedRoles] = await this.roleRepository.update(updateRoleDto, {
+    const [numberUpdatedRows, updatedRoles] = await this.roleRepository.update(updateRoleDto, {
       where: { id },
       returning: true,
     });

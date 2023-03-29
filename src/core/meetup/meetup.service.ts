@@ -91,7 +91,7 @@ export class MeetupService {
     }
     const { tags, ...updateMeetupData } = updateMeetupDto;
 
-    const [nemberUpdatedRows, updatedMeetups] = await this.meetupRepository.update(
+    const [numberUpdatedRows, updatedMeetups] = await this.meetupRepository.update(
       updateMeetupData,
       {
         where: { id },
