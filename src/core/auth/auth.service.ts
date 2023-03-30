@@ -32,8 +32,8 @@ export class AuthService {
   public async login(user: User): Promise<FrontendJwt> {
     const payload = { id: user.id, roles: user.roles };
 
-    const accessToken = await this.generateAccessJwtToken(payload);
-    const refreshToken = await this.generateRefreshJwtToken(payload);
+    const accessToken = await this.generateAccessJwt(payload);
+    const refreshToken = await this.generateRefreshJwt(payload);
 
     return { accessToken, refreshToken };
   }
@@ -44,12 +44,12 @@ export class AuthService {
     }
     try {
       const { id, roles } = await this.jwtService.verifyAsync(refreshToken, {
-        secret: process.env.JWT_REFRESH_TOKEN_SECRET,
+        secret: process.env.JWT_REFRESH_SECRET,
       });
 
       const payload = { id, roles };
-      const newAccessToken = await this.generateAccessJwtToken(payload);
-      const newRefreshToken = await this.generateRefreshJwtToken(payload);
+      const newAccessToken = await this.generateAccessJwt(payload);
+      const newRefreshToken = await this.generateRefreshJwt(payload);
 
       return { accessToken: newAccessToken, refreshToken: newRefreshToken };
     } catch (err) {
@@ -74,19 +74,19 @@ export class AuthService {
     return null;
   }
 
-  private async generateAccessJwtToken(payload: PayloadDto): Promise<string> {
+  private async generateAccessJwt(payload: PayloadDto): Promise<string> {
     const accessToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_ACCESS_TOKEN_SECRET,
-      expiresIn: process.env.JWT_ACCESS_TOKEN_DURATION,
+      secret: process.env.JWT_ACCESS_SECRET,
+      expiresIn: process.env.JWT_ACCESS_DURATION,
     });
 
     return accessToken;
   }
 
-  private async generateRefreshJwtToken(payload: PayloadDto): Promise<string> {
+  private async generateRefreshJwt(payload: PayloadDto): Promise<string> {
     const refreshToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_REFRESH_TOKEN_SECRET,
-      expiresIn: process.env.JWT_REFRESH_TOKEN_DURATION,
+      secret: process.env.JWT_REFRESH_SECRET,
+      expiresIn: process.env.JWT_REFRESH_DURATION,
     });
 
     return refreshToken;
