@@ -11,6 +11,7 @@ import { IReadAllUserOptions, UserFiltration } from './types/read-all-user.optio
 import { Role } from '../role/role.model';
 import { UserOptions } from './dto/user.options';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Meetup } from '../meetup/meetup.model';
 
 @Injectable()
 export class UserService {
@@ -29,7 +30,7 @@ export class UserService {
     await this.throwErrorIfSimilarEmailUserExists(createUserDto.email);
 
     const user = await this.userRepository.create(createUserDto, { transaction });
-    await user.$add('roles', [role], { transaction }); //в этом месте транзакция падает
+    await user.$add('roles', [role], { transaction });
     user.roles = [role];
     delete user.password;
 
@@ -47,11 +48,15 @@ export class UserService {
         {
           model: Role,
           all: true,
+          through: { attributes: [] },
+        },
+        {
+          model: Meetup,
+          all: true,
+          as: 'createdMeetups',
         },
       ],
-      attributes: {
-        exclude: ['password'],
-      },
+      attributes: { exclude: ['password'] },
       distinct: true,
       limit: pagination.size,
       offset: pagination.offset,
@@ -68,11 +73,24 @@ export class UserService {
     };
   }
 
-  public async readOneBy(userOptions: UserOptions): Promise<User> {
+  public async readOneBy(userOptions: UserOptions, transaction?: Transaction): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { ...userOptions },
-      include: { all: true, through: { attributes: [] } },
+      include: [
+        {
+          model: Role,
+          all: true,
+          through: { attributes: [] },
+        },
+        {
+          model: Meetup,
+          all: true,
+          as: 'createdMeetups',
+        },
+      ],
+      transaction,
     });
+
     return user;
   }
 

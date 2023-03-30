@@ -8,6 +8,7 @@ import {
   HttpCode,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ReadAllResult } from 'src/common/read-all/types/read-all.types';
 import { UserService } from './user.service';
@@ -15,7 +16,10 @@ import { FrontendUser } from './types/user.types';
 import { ReadAllUserDto } from './dto/read-all-user.dto';
 import { User } from './user.model';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { RolesGuard } from 'src/common/guards/role.guard';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}

@@ -1,5 +1,18 @@
-import { Controller, Post, HttpCode, Body, Get, Put, Delete, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  HttpCode,
+  Body,
+  Get,
+  Put,
+  Delete,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { HttpStatus } from '@nestjs/common/enums';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { RolesGuard } from 'src/common/guards/role.guard';
 import { ReadAllResult } from 'src/common/read-all/types/read-all.types';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { ReadAllTagDto } from './dto/read-all-tag.dto';
@@ -8,6 +21,7 @@ import { Tag } from './tag.model';
 import { TagService } from './tag.service';
 import { FrontendTag } from './types/tag.types';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('tag')
 export class TagController {
   constructor(private readonly tagService: TagService) {}

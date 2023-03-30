@@ -9,7 +9,11 @@ import {
   HttpCode,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { RolesGuard } from 'src/common/guards/role.guard';
 import { ReadAllResult } from 'src/common/read-all/types/read-all.types';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { ReadAllRoleDto } from './dto/read-all-role.dto';
@@ -18,6 +22,8 @@ import { Role } from './role.model';
 import { RoleService } from './role.service';
 import { FrontendRole } from './types/role.types';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN')
 @Controller('role')
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}

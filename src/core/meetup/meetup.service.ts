@@ -11,25 +11,42 @@ import { ReadAllResult } from 'src/common/read-all/types/read-all.types';
 import { defaultPagination } from 'src/common/constants/pagination.constants';
 import { IReadAllMeetupOptions, MeetupFiltration } from './types/read-all-meetup.options';
 import { defaultSorting } from 'src/common/constants/sorting.constants';
+import { PayloadDto } from '../auth/dto/payload.dto';
+import { UserService } from '../user/user.service';
+import { BadRequestException } from '@nestjs/common/exceptions';
+import { User } from '../user/user.model';
+import { Role } from '../role/role.model';
 
 @Injectable()
 export class MeetupService {
   constructor(
     @InjectModel(Meetup) private readonly meetupRepository: typeof Meetup,
     private readonly tagService: TagService,
+    private readonly userService: UserService,
   ) {}
 
-  public async create(createMeetupDto: CreateMeetupDto, transaction: Transaction): Promise<Meetup> {
-    const { tags } = createMeetupDto;
-
+  public async create(
+    createMeetupDto: CreateMeetupDto,
+    user: PayloadDto,
+    transaction: Transaction,
+  ): Promise<Meetup> {
     const meetup = await this.meetupRepository.create(createMeetupDto, {
       transaction,
     });
 
+    const { tags } = createMeetupDto;
     const tagsArray = await this.getExistingOrCreateTags(tags, transaction);
     await meetup.$add('tags', tagsArray, { transaction });
 
+    const organizer = await this.userService.readOneBy({ id: user.id }, transaction);
+    if (!organizer) {
+      throw new BadRequestException(`you can't create a meetup without linking to a user`);
+    }
+
+    await meetup.$set('organizer', organizer, { transaction });
+
     meetup.tags = tagsArray;
+    meetup.organizer = organizer;
 
     return meetup;
   }
@@ -46,6 +63,10 @@ export class MeetupService {
           model: Tag,
           where: { ...filter.tagsFilters },
           all: true,
+        },
+        {
+          model: User,
+          as: 'organizer',
         },
       ],
       distinct: true,
@@ -67,8 +88,19 @@ export class MeetupService {
   public async readOneBy(meetupOptions: MeetupOptions): Promise<Meetup> {
     const meetup = await this.meetupRepository.findOne({
       where: { ...meetupOptions },
-      include: { all: true, through: { attributes: [] } },
+      include: [
+        {
+          model: Tag,
+          all: true,
+          through: { attributes: [] },
+        },
+        {
+          model: User,
+          as: 'organizer',
+        },
+      ],
     });
+
     return meetup;
   }
 
@@ -83,12 +115,18 @@ export class MeetupService {
   public async update(
     id: string,
     updateMeetupDto: UpdateMeetupDto,
+    organizer: PayloadDto,
     transaction: Transaction,
   ): Promise<Meetup> {
     const existingMeetup = await this.readOneBy({ id });
     if (!existingMeetup) {
       throw new NotFoundException(`meetup with id=${id} not found`);
     }
+
+    if (existingMeetup.organizer.id !== organizer.id) {
+      throw new BadRequestException('you cannot perform this action');
+    }
+
     const { tags, ...updateMeetupData } = updateMeetupDto;
 
     const [numberUpdatedRows, updatedMeetups] = await this.meetupRepository.update(
@@ -111,11 +149,19 @@ export class MeetupService {
     return updatedMeetups[0];
   }
 
-  public async delete(id: string): Promise<void> {
+  public async delete(id: string, organizer: PayloadDto): Promise<void> {
     const existingMeetup = await this.readOneBy({ id });
     if (!existingMeetup) {
       throw new NotFoundException(`meetup with id=${id} not found`);
     }
+
+    const isOrganizer = existingMeetup.organizer.id === organizer.id;
+    const isAdmin = organizer.roles.some((role: Role) => role.name === 'ADMIN');
+
+    if (!isOrganizer && !isAdmin) {
+      throw new BadRequestException('you cannot perform this action');
+    }
+
     await this.meetupRepository.destroy({ where: { id } });
   }
 

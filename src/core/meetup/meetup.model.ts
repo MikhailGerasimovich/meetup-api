@@ -1,12 +1,14 @@
-import { BelongsToMany, DataType, Model, Table } from 'sequelize-typescript';
+import { BelongsTo, BelongsToMany, DataType, ForeignKey, Model, Table } from 'sequelize-typescript';
 import { Column } from 'sequelize-typescript';
 import { Tag } from '../tag/tag.model';
+import { User } from '../user/user.model';
 
 interface MeetupCreationAttrs {
   title: string;
   description: string;
   date: Date;
   place: string;
+  organizer_id: string;
 }
 
 @Table({ tableName: 'meetups', timestamps: false })
@@ -28,4 +30,7 @@ export class Meetup extends Model<Meetup, MeetupCreationAttrs> {
 
   @BelongsToMany(() => Tag, 'meetups_tags', 'meetup_id', 'tag_id')
   tags: Tag[];
+
+  @BelongsTo(() => User, 'organizer_id')
+  organizer: User;
 }

@@ -10,6 +10,7 @@ import {
   HttpStatus,
   UseInterceptors,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { Transaction } from 'sequelize';
 import { CreateMeetupDto } from './dto/create-meetup.dto';
@@ -21,7 +22,12 @@ import { FrontendMeetup } from './types/meetup.types';
 import { ReadAllMeetupDto } from './dto/read-all-meetup.dto';
 import { Meetup } from './meetup.model';
 import { ReadAllResult } from 'src/common/read-all/types/read-all.types';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { RolesGuard } from 'src/common/guards/role.guard';
+import { UserFromRequest } from 'src/common/decorators/user-from-request.decorator';
+import { PayloadDto } from '../auth/dto/payload.dto';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('meetup')
 export class MeetupController {
   constructor(private readonly meetupService: MeetupService) {}
@@ -32,8 +38,9 @@ export class MeetupController {
   public async create(
     @Body() createMeetupDto: CreateMeetupDto,
     @TransactionParam() transaction: Transaction,
+    @UserFromRequest() user: PayloadDto,
   ): Promise<FrontendMeetup> {
-    const meetup = await this.meetupService.create(createMeetupDto, transaction);
+    const meetup = await this.meetupService.create(createMeetupDto, user, transaction);
     return new FrontendMeetup(meetup);
   }
 
@@ -65,14 +72,23 @@ export class MeetupController {
     @Param('id') id: string,
     @Body() updateMeetupDto: UpdateMeetupDto,
     @TransactionParam() transaction: Transaction,
+    @UserFromRequest() organizer: PayloadDto,
   ): Promise<FrontendMeetup> {
-    const updatedMeetup = await this.meetupService.update(id, updateMeetupDto, transaction);
+    const updatedMeetup = await this.meetupService.update(
+      id,
+      updateMeetupDto,
+      organizer,
+      transaction,
+    );
     return new FrontendMeetup(updatedMeetup);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  public async delete(@Param('id') id: string): Promise<void> {
-    await this.meetupService.delete(id);
+  public async delete(
+    @Param('id') id: string,
+    @UserFromRequest() organizer: PayloadDto,
+  ): Promise<void> {
+    await this.meetupService.delete(id, organizer);
   }
 }
