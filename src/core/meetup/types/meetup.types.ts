@@ -10,6 +10,11 @@ export class FrontendMeetup {
     id: string;
     name: string;
   }[];
+  public organizer: {
+    id: string;
+    login: string;
+    email: string;
+  };
 
   constructor(meetup: Meetup) {
     this.id = meetup.id;
@@ -21,5 +26,10 @@ export class FrontendMeetup {
       id: tag.id,
       name: tag.name,
     }));
+    this.organizer = {
+      id: meetup.organizer.id,
+      login: meetup.organizer.login,
+      email: meetup.organizer.email,
+    };
   }
 }

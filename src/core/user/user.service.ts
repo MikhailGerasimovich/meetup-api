@@ -12,6 +12,7 @@ import { Role } from '../role/role.model';
 import { UserOptions } from './dto/user.options';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Meetup } from '../meetup/meetup.model';
+import { Tag } from '../tag/tag.model';
 
 @Injectable()
 export class UserService {
@@ -54,6 +55,7 @@ export class UserService {
           model: Meetup,
           all: true,
           as: 'createdMeetups',
+          include: [{ model: Tag }],
         },
       ],
       attributes: { exclude: ['password'] },
@@ -86,6 +88,7 @@ export class UserService {
           model: Meetup,
           all: true,
           as: 'createdMeetups',
+          include: [{ model: Tag }],
         },
       ],
       transaction,
