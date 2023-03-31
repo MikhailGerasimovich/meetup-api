@@ -51,6 +51,40 @@ export class MeetupService {
     return meetup;
   }
 
+  public async joinToMeetup(meetupId: string, memberPayload: PayloadDto): Promise<Meetup> {
+    const meetup = await this.readOneBy({ id: meetupId });
+    if (!meetup) {
+      throw new BadRequestException('you cannot join a non-existent meetup');
+    }
+
+    const member = await this.userService.readOneBy({ id: memberPayload.id });
+    const members = await meetup.$get('members');
+    const isAlreadyRegistered = members.some((user: User) => user.id === member.id);
+    if (isAlreadyRegistered) {
+      throw new BadRequestException('you are already registered for this meetup');
+    }
+    await meetup.$add('members', member);
+
+    return await this.readOneBy({ id: meetup.id });
+  }
+
+  public async leavefromMeetup(meetupId: string, memberPayload: PayloadDto): Promise<Meetup> {
+    const meetup = await this.readOneBy({ id: meetupId });
+    if (!meetup) {
+      throw new BadRequestException('you cannot leave a non-existent meetup');
+    }
+
+    const member = await this.userService.readOneBy({ id: memberPayload.id });
+    const members = await meetup.$get('members');
+    const isMember = members.some((user: User) => user.id === member.id);
+    if (!isMember) {
+      throw new BadRequestException('you cannot leave a meetup that you are not signed up for');
+    }
+    await meetup.$remove('members', member);
+
+    return await this.readOneBy({ id: meetup.id });
+  }
+
   public async readAll(readOptions: IReadAllMeetupOptions): Promise<ReadAllResult<Meetup>> {
     const pagination = readOptions.pagination ?? defaultPagination;
     const sorting = readOptions.sorting ?? defaultSorting;
@@ -67,6 +101,10 @@ export class MeetupService {
         {
           model: User,
           as: 'organizer',
+        },
+        {
+          model: User,
+          as: 'members',
         },
       ],
       distinct: true,
@@ -97,6 +135,10 @@ export class MeetupService {
         {
           model: User,
           as: 'organizer',
+        },
+        {
+          model: User,
+          as: 'members',
         },
       ],
     });

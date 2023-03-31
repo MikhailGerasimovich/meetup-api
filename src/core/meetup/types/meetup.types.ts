@@ -16,6 +16,12 @@ export class FrontendMeetup {
     email: string;
   };
 
+  public members: {
+    id: string;
+    login: string;
+    email: string;
+  }[];
+
   constructor(meetup: Meetup) {
     this.id = meetup.id;
     this.title = meetup.title;
@@ -31,5 +37,10 @@ export class FrontendMeetup {
       login: meetup.organizer.login,
       email: meetup.organizer.email,
     };
+    this.members = meetup.members?.map((member) => ({
+      id: member.id,
+      login: member.login,
+      email: member.email,
+    }));
   }
 }

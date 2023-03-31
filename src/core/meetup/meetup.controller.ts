@@ -44,6 +44,26 @@ export class MeetupController {
     return new FrontendMeetup(meetup);
   }
 
+  @Post('join/:id')
+  @HttpCode(HttpStatus.CREATED)
+  public async joinToMeetup(
+    @Param('id') id: string,
+    @UserFromRequest() member: PayloadDto,
+  ): Promise<FrontendMeetup> {
+    const meetup = await this.meetupService.joinToMeetup(id, member);
+    return new FrontendMeetup(meetup);
+  }
+
+  @Post('leave/:id')
+  @HttpCode(HttpStatus.CREATED)
+  public async leaveFromMeetup(
+    @Param('id') id: string,
+    @UserFromRequest() member: PayloadDto,
+  ): Promise<FrontendMeetup> {
+    const meetup = await this.meetupService.leavefromMeetup(id, member);
+    return new FrontendMeetup(meetup);
+  }
+
   @Get()
   @HttpCode(HttpStatus.OK)
   public async readAll(
