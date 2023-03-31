@@ -27,4 +27,7 @@ export class User extends Model<User, UserCreationAttrs> {
 
   @HasMany(() => Meetup, 'organizer_id')
   createdMeetups: Meetup[];
+
+  @BelongsToMany(() => Meetup, 'meetups_users', 'user_id', 'meetup_id')
+  meetups: Meetup[];
 }

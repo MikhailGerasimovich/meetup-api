@@ -33,4 +33,7 @@ export class Meetup extends Model<Meetup, MeetupCreationAttrs> {
 
   @BelongsTo(() => User, 'organizer_id')
   organizer: User;
+
+  @BelongsToMany(() => User, 'meetups_users', 'meetup_id', 'user_id')
+  members: User[];
 }
