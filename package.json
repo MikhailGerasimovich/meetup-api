@@ -18,8 +18,14 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
-  },
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "db:create": "sequelize db:create",
+    "db:migrate:create": "ts-node -T -r tsconfig-paths/register practice.ts",
+    "db:drop": "sequelize db:drop",
+    "db:migrate": "sequelize db:migrate",
+    "seed:generate": "sequelize seed:generate",
+    "seed:all": "sequelize db:seed:all"
+    },
   "dependencies": {
     "@nestjs/common": "^8.0.0",
     "@nestjs/core": "^8.0.0",
@@ -40,11 +46,13 @@
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
     "sequelize": "^6.29.0",
+    "sequelize-cli": "^6.6.0",
     "sequelize-typescript": "^2.1.5",
+    "sequelize-typescript-migration-lts": "^3.2.5",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@nestjs/cli": "^8.0.0",
+    "@nestjs/cli": "^9.0.0",
     "@nestjs/schematics": "^8.0.0",
     "@nestjs/testing": "^8.0.0",
     "@types/bcryptjs": "^2.4.2",

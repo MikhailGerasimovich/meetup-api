@@ -18,7 +18,7 @@ export class AuthService {
   constructor(private readonly userService: UserService, private readonly jwtService: JwtService) {}
 
   public async registration(createUserDto: CreateUserDto, transaction: Transaction): Promise<User> {
-    const hashPassword = await hash(createUserDto.password, 7);
+    const hashPassword = await hash(createUserDto.password, 10);
     const registratedUser = await this.userService.create(
       {
         ...createUserDto,
