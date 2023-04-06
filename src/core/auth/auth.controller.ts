@@ -24,6 +24,8 @@ import { Request } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { RefreshGuard } from 'src/common/guards/refresh.guard';
 import { PayloadDto } from './dto/payload.dto';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -56,5 +58,16 @@ export class AuthController {
     const tokens = await this.authService.refresh(user);
     req.res.cookie('auth-cookie', tokens, { httpOnly: true });
     return tokens;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  @HttpCode(HttpStatus.OK)
+  public async changePassword(
+    @Body() changePasswordDto: ChangePasswordDto,
+    @UserFromRequest() userData: PayloadDto,
+  ): Promise<FrontendUser> {
+    const user = await this.authService.changePassword(changePasswordDto, userData);
+    return new FrontendUser(user);
   }
 }

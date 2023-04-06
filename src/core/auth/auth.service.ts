@@ -7,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PayloadDto } from './dto/payload.dto';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { FrontendJwt } from './types/jwt.types';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -40,6 +41,21 @@ export class AuthService {
     const refreshToken = await this.generateRefreshJwt(payload);
 
     return { accessToken, refreshToken };
+  }
+
+  public async changePassword(
+    changePasswordDto: ChangePasswordDto,
+    userData: PayloadDto,
+  ): Promise<User> {
+    const user = await this.userService.readOneBy({ id: userData.id });
+    if (!user) {
+      throw new BadRequestException('such user does not exist');
+    }
+    const hashPassword = await hash(changePasswordDto.password, 10);
+    await this.userService.update(userData.id, {
+      password: hashPassword,
+    });
+    return user;
   }
 
   public async refresh(user: User): Promise<FrontendJwt> {
