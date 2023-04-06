@@ -6,6 +6,8 @@ import {
   HttpStatus,
   UseInterceptors,
   UseGuards,
+  Req,
+  Get,
 } from '@nestjs/common';
 import { Transaction } from 'sequelize';
 import { TransactionInterceptor } from 'src/common/interceptors/transaction.interceptor';
@@ -18,6 +20,10 @@ import { RefreshDto } from './dto/refresh.dto';
 import { FrontendJwt } from './types/jwt.types';
 import { UserFromRequest } from 'src/common/decorators/user-from-request.decorator';
 import { User } from '../user/user.model';
+import { Request } from 'express';
+import { AuthGuard } from '@nestjs/passport';
+import { RefreshGuard } from 'src/common/guards/refresh.guard';
+import { PayloadDto } from './dto/payload.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -37,15 +43,18 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  public async login(@UserFromRequest() user: User): Promise<FrontendJwt> {
+  public async login(@UserFromRequest() user: User, @Req() req: Request): Promise<FrontendJwt> {
     const tokens = await this.authService.login(user);
+    req.res.cookie('auth-cookie', tokens, { httpOnly: true });
     return tokens;
   }
 
-  @Post('refresh')
+  @UseGuards(RefreshGuard)
+  @Get('refresh')
   @HttpCode(HttpStatus.OK)
-  public async refresh(@Body() refreshDto: RefreshDto): Promise<FrontendJwt> {
-    const tokens = await this.authService.refresh(refreshDto.refreshToken);
+  public async refresh(@UserFromRequest() user: User, @Req() req): Promise<FrontendJwt> {
+    const tokens = await this.authService.refresh(user);
+    req.res.cookie('auth-cookie', tokens, { httpOnly: true });
     return tokens;
   }
 }
