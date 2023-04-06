@@ -51,6 +51,14 @@ export class TagService {
     return tag;
   }
 
+  public async readOneById(id: string): Promise<Tag> {
+    const tag = await this.readOneBy({ id });
+    if (!tag) {
+      throw new NotFoundException(`tag with id=${id} not found`);
+    }
+    return tag;
+  }
+
   public async update(id: string, updateTagDto: UpdateTagDto) {
     const existingTag = await this.readOneBy({ id });
     if (!existingTag) {
@@ -62,7 +70,7 @@ export class TagService {
       throw new BadRequestException(`tag with name=${updateTagDto.name} already exists`);
     }
 
-    const [nemberUpdatedRows, updatedTags] = await this.tagRepository.update(updateTagDto, {
+    const [numberUpdatedRows, updatedTags] = await this.tagRepository.update(updateTagDto, {
       where: { id },
       returning: true,
     });

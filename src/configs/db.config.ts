@@ -1,7 +1,8 @@
 import { SequelizeModuleOptions } from '@nestjs/sequelize';
+import { Dialect } from 'sequelize';
 
 export const dbconfig: SequelizeModuleOptions = {
-  dialect: 'postgres',
+  dialect: (process.env.DB_DIALECT as Dialect) ?? 'postgres',
   host: process.env.DB_HOST ?? 'localhost',
   port: Number(process.env.DB_PORT) ?? 3000,
   username: process.env.DB_USERNAME ?? 'postgres',

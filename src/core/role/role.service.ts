@@ -43,6 +43,14 @@ export class RoleService {
     return role;
   }
 
+  public async readOneById(id: string): Promise<Role> {
+    const role = await this.readOneBy({ id });
+    if (!role) {
+      throw new NotFoundException(`role with id=${id} not found`);
+    }
+    return role;
+  }
+
   public async update(id: string, updateRoleDto: UpdateRoleDto): Promise<Role> {
     const existingRole = await this.readOneBy({ id });
     if (!existingRole) {
@@ -54,7 +62,7 @@ export class RoleService {
       throw new BadRequestException(`role with name=${updateRoleDto.name} already exists`);
     }
 
-    const [nemberUpdatedRows, updatedRoles] = await this.roleRepository.update(updateRoleDto, {
+    const [numberUpdatedRows, updatedRoles] = await this.roleRepository.update(updateRoleDto, {
       where: { id },
       returning: true,
     });
@@ -68,5 +76,15 @@ export class RoleService {
       throw new NotFoundException(`role with id=${id} not found`);
     }
     await this.roleRepository.destroy({ where: { id } });
+  }
+
+  public async initRoles(roleNames: string[]): Promise<void> {
+    for (let roleName of roleNames) {
+      const role = await this.readOneBy({ name: roleName.toLocaleUpperCase() });
+      if (!role) {
+        await this.create({ name: roleName });
+      }
+    }
+    console.log('All required roles exist or created successfully');
   }
 }

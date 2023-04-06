@@ -1,4 +1,5 @@
-import { BelongsToMany, Column, DataType, Model, Table } from 'sequelize-typescript';
+import { BelongsToMany, Column, DataType, HasMany, Model, Table } from 'sequelize-typescript';
+import { Meetup } from '../meetup/meetup.model';
 import { Role } from '../role/role.model';
 
 interface UserCreationAttrs {
@@ -23,4 +24,10 @@ export class User extends Model<User, UserCreationAttrs> {
 
   @BelongsToMany(() => Role, 'users_roles', 'user_id', 'role_id')
   roles: Role[];
+
+  @HasMany(() => Meetup, 'organizer_id')
+  createdMeetups: Meetup[];
+
+  @BelongsToMany(() => Meetup, 'meetups_users', 'user_id', 'meetup_id')
+  meetups: Meetup[];
 }
