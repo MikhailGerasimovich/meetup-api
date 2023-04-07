@@ -21,6 +21,9 @@ const bootstrap = async () => {
     dialect: process.env.DB_DIALECT as Dialect,
     models: [Meetup, Tag, User, Role],
     logging: false,
+    define: {
+      timestamps: false,
+    },
   });
   try {
     const result = await SequelizeTypescriptMigration.makeMigration(sequelize, {
