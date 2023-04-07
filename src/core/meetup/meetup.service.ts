@@ -11,27 +11,78 @@ import { ReadAllResult } from 'src/common/read-all/types/read-all.types';
 import { defaultPagination } from 'src/common/constants/pagination.constants';
 import { IReadAllMeetupOptions, MeetupFiltration } from './types/read-all-meetup.options';
 import { defaultSorting } from 'src/common/constants/sorting.constants';
+import { PayloadDto } from '../auth/dto/payload.dto';
+import { UserService } from '../user/user.service';
+import { BadRequestException } from '@nestjs/common/exceptions';
+import { User } from '../user/user.model';
+import { Role } from '../role/role.model';
 
 @Injectable()
 export class MeetupService {
   constructor(
     @InjectModel(Meetup) private readonly meetupRepository: typeof Meetup,
     private readonly tagService: TagService,
+    private readonly userService: UserService,
   ) {}
 
-  public async create(createMeetupDto: CreateMeetupDto, transaction: Transaction): Promise<Meetup> {
-    const { tags } = createMeetupDto;
-
+  public async create(
+    createMeetupDto: CreateMeetupDto,
+    user: PayloadDto,
+    transaction: Transaction,
+  ): Promise<Meetup> {
     const meetup = await this.meetupRepository.create(createMeetupDto, {
       transaction,
     });
 
+    const { tags } = createMeetupDto;
     const tagsArray = await this.getExistingOrCreateTags(tags, transaction);
     await meetup.$add('tags', tagsArray, { transaction });
 
+    const organizer = await this.userService.readOneBy({ id: user.id }, transaction);
+    if (!organizer) {
+      throw new BadRequestException(`you can't create a meetup without linking to a user`);
+    }
+
+    await meetup.$set('organizer', organizer, { transaction });
+
     meetup.tags = tagsArray;
+    meetup.organizer = organizer;
 
     return meetup;
+  }
+
+  public async joinToMeetup(meetupId: string, memberPayload: PayloadDto): Promise<Meetup> {
+    const meetup = await this.readOneBy({ id: meetupId });
+    if (!meetup) {
+      throw new BadRequestException('you cannot join a non-existent meetup');
+    }
+
+    const member = await this.userService.readOneBy({ id: memberPayload.id });
+    const members = await meetup.$get('members');
+    const isAlreadyRegistered = members.some((user: User) => user.id === member.id);
+    if (isAlreadyRegistered) {
+      throw new BadRequestException('you are already registered for this meetup');
+    }
+    await meetup.$add('members', member);
+
+    return await this.readOneBy({ id: meetup.id });
+  }
+
+  public async leavefromMeetup(meetupId: string, memberPayload: PayloadDto): Promise<Meetup> {
+    const meetup = await this.readOneBy({ id: meetupId });
+    if (!meetup) {
+      throw new BadRequestException('you cannot leave a non-existent meetup');
+    }
+
+    const member = await this.userService.readOneBy({ id: memberPayload.id });
+    const members = await meetup.$get('members');
+    const isMember = members.some((user: User) => user.id === member.id);
+    if (!isMember) {
+      throw new BadRequestException('you cannot leave a meetup that you are not signed up for');
+    }
+    await meetup.$remove('members', member);
+
+    return await this.readOneBy({ id: meetup.id });
   }
 
   public async readAll(readOptions: IReadAllMeetupOptions): Promise<ReadAllResult<Meetup>> {
@@ -46,6 +97,14 @@ export class MeetupService {
           model: Tag,
           where: { ...filter.tagsFilters },
           all: true,
+        },
+        {
+          model: User,
+          as: 'organizer',
+        },
+        {
+          model: User,
+          as: 'members',
         },
       ],
       distinct: true,
@@ -67,23 +126,52 @@ export class MeetupService {
   public async readOneBy(meetupOptions: MeetupOptions): Promise<Meetup> {
     const meetup = await this.meetupRepository.findOne({
       where: { ...meetupOptions },
-      include: { all: true, through: { attributes: [] } },
+      include: [
+        {
+          model: Tag,
+          all: true,
+          through: { attributes: [] },
+        },
+        {
+          model: User,
+          as: 'organizer',
+        },
+        {
+          model: User,
+          as: 'members',
+        },
+      ],
     });
+
+    return meetup;
+  }
+
+  public async readOneById(id: string): Promise<Meetup> {
+    const meetup = await this.readOneBy({ id });
+    if (!meetup) {
+      throw new NotFoundException(`meetup with id=${id} not found`);
+    }
     return meetup;
   }
 
   public async update(
     id: string,
     updateMeetupDto: UpdateMeetupDto,
+    organizer: PayloadDto,
     transaction: Transaction,
   ): Promise<Meetup> {
     const existingMeetup = await this.readOneBy({ id });
     if (!existingMeetup) {
       throw new NotFoundException(`meetup with id=${id} not found`);
     }
+
+    if (existingMeetup.organizer.id !== organizer.id) {
+      throw new BadRequestException('you cannot perform this action');
+    }
+
     const { tags, ...updateMeetupData } = updateMeetupDto;
 
-    const [nemberUpdatedRows, updatedMeetups] = await this.meetupRepository.update(
+    const [numberUpdatedRows, updatedMeetups] = await this.meetupRepository.update(
       updateMeetupData,
       {
         where: { id },
@@ -103,11 +191,19 @@ export class MeetupService {
     return updatedMeetups[0];
   }
 
-  public async delete(id: string): Promise<void> {
-    const existingModel = await this.readOneBy({ id });
-    if (!existingModel) {
+  public async delete(id: string, organizer: PayloadDto): Promise<void> {
+    const existingMeetup = await this.readOneBy({ id });
+    if (!existingMeetup) {
       throw new NotFoundException(`meetup with id=${id} not found`);
     }
+
+    const isOrganizer = existingMeetup.organizer.id === organizer.id;
+    const isAdmin = organizer.roles.some((role: Role) => role.name === 'ADMIN');
+
+    if (!isOrganizer && !isAdmin) {
+      throw new BadRequestException('you cannot perform this action');
+    }
+
     await this.meetupRepository.destroy({ where: { id } });
   }
 
