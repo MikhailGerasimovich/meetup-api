@@ -52,7 +52,7 @@ export class AuthController {
   }
 
   @UseGuards(RefreshGuard)
-  @Get('refresh')
+  @Post('refresh')
   @HttpCode(HttpStatus.OK)
   public async refresh(@UserFromRequest() user: User, @Req() req): Promise<FrontendJwt> {
     const tokens = await this.authService.refresh(user);
