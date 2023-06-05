@@ -5,8 +5,10 @@ import * as coocieParser from 'cookie-parser';
 import { config } from 'dotenv';
 config();
 
-const port = Number(process.env.PORT) ?? 3000;
-const host = process.env.HOST ?? 'localhost';
+// const port = Number(process.env.PORT) ?? 3000;
+// const host = process.env.HOST ?? 'localhost';
+
+const address = process.env.ADDRESS;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,6 +20,6 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  await app.listen(port, host);
+  await app.listen(address);
 }
 bootstrap();
