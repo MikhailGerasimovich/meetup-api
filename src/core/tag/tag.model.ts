@@ -5,7 +5,7 @@ interface TagCreationAttrs {
   name: string;
 }
 
-@Table({ tableName: 'tags', timestamps: false })
+@Table({ tableName: 'tags', timestamps: false, createdAt: false, updatedAt: false })
 export class Tag extends Model<Tag, TagCreationAttrs> {
   @Column({ type: DataType.UUID, primaryKey: true, unique: true, defaultValue: DataType.UUIDV4 })
   id: string;

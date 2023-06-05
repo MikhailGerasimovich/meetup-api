@@ -23,6 +23,8 @@ const bootstrap = async () => {
     logging: false,
     define: {
       timestamps: false,
+      updatedAt: false,
+      createdAt: false,
     },
   });
   try {

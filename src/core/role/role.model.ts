@@ -5,7 +5,7 @@ interface RoleCreationAttrs {
   name: string;
 }
 
-@Table({ tableName: 'roles', timestamps: false })
+@Table({ tableName: 'roles', timestamps: false, createdAt: false, updatedAt: false })
 export class Role extends Model<Role, RoleCreationAttrs> {
   @Column({ type: DataType.UUID, primaryKey: true, unique: true, defaultValue: DataType.UUIDV4 })
   id: string;

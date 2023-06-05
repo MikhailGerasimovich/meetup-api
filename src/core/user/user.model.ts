@@ -8,7 +8,7 @@ interface UserCreationAttrs {
   email: string;
 }
 
-@Table({ tableName: 'users', timestamps: false })
+@Table({ tableName: 'users', timestamps: false, createdAt: false, updatedAt: false })
 export class User extends Model<User, UserCreationAttrs> {
   @Column({ type: DataType.UUID, primaryKey: true, unique: true, defaultValue: DataType.UUIDV4 })
   id: string;

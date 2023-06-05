@@ -11,7 +11,7 @@ interface MeetupCreationAttrs {
   organizer_id: string;
 }
 
-@Table({ tableName: 'meetups', timestamps: false })
+@Table({ tableName: 'meetups', timestamps: false, createdAt: false, updatedAt: false })
 export class Meetup extends Model<Meetup, MeetupCreationAttrs> {
   @Column({ type: DataType.UUID, primaryKey: true, unique: true, defaultValue: DataType.UUIDV4 })
   id: string;
