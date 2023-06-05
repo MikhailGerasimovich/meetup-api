@@ -1,9 +1,9 @@
 {
   "development": {
-    "username": "postgres",
-    "password": "957483",
-    "database": "meetup_db",
-    "host": "localhost",
+    "username": "postgress",
+    "password": "yWtSoPUM4BWWCLIKEEUC4ewWC0DYrSQB",
+    "database": "meetup_db_yj5x",
+    "host": "dpg-churbim7avj345e7a1v0-a",
     "dialect": "postgres"
   },
   "test": {
